@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <title>Verizon Tweets</title>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+    </head>
+    <body>
+        <ul>
+        {% for entry in entries %}
+            <li>
+                <p class="title">
+                    <span class="time">{{ entry.time }}</span> - 
+                    <a href="https://twitter.com/{{ entry.user }}" class="user" target="_blank">{{ entry.user }}</a>
+                </p>
+                <p class="place">{{ entry.place }}</p>
+                {% autoescape false %}
+                <p class="text">{{ entry.text }}</p>
+                {% endautoescape %}
+            </li>
+        {% endfor %}
+        </ul>
+    </body>
+</html>
