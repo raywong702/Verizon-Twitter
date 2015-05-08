@@ -1,12 +1,16 @@
+import os
 import datetime
 import re
 import json
 from pytz import timezone
 import tweepy
+from app import db
+import models
+
 
 # Consumer keys and access tokens, used for OAuth
-consumer_key = ''
-consumer_secret = ''
+consumer_key = os.environ['CONSUMER_KEY']
+consumer_secret = os.environ['CONSUMER_SECRET']
  
 # OAuth process, using the keys and tokens
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
@@ -105,15 +109,25 @@ def get_tweets():
                 pass
 
 
-#        print("{} ::: {} ::: {}".format(time, user, text))
+        print("{} ::: {} ::: {} ::: {}".format(time, user, place, text))
 
+
+        # Build DB
+        #row = models.Result(time, user, place, text)
+        row = models.Result(time, user, place, text, tweet._json)
+        try:
+            db.session.add(row)
+            db.session.commit()
+        except:
+            pass
 
         # Format text for html
         text = style_text(text, hashtags, users)
 
         # Build Output
-        entry = {"time":time, "user":user, "place":place, "text":text}
-        output.append(entry)
+#        entry = {"time":time, "user":user, "place":place, "text":text}
+#        output.append(entry)
+        output.append(row)
 
     return output
 
@@ -166,3 +180,4 @@ def replace_url_to_link(value):
 
 if __name__ == '__main__':
     get_tweets()
+

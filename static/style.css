@@ -5,11 +5,11 @@ li {margin: 20px; padding: 10px; background-color: #fff2ce; border: 2px solid #C
 p.title {margin-bottom: 0px; font-size: 18px}
 p.place {margin-top: 0px; margin-bottom: 0px; font-size:14px;}
 span.time {margin-right: 5px; color: #aaccb1}
-a.user, a.hashtag {text-decoration: none}
-a.user, a.user:link, a.user:visited, a.user:active {color: #68b2af}
+a.screen_name, a.hashtag {text-decoration: none}
+a.screen_name, a.screen_name:link, a.screen_name:visited, a.screen_name:active {color: #68b2af}
 a.hashtag, a.hashtag:link, a.hashtag:visited, a.hashtag:active {color: #3a8182; font-weight: 550;}
 a:link {color: #3a8182;}
 a:visited {color: #ed2f3b;}
 a:active {color: #f56249;}
-p.title a.user {margin-left: 5px}
+p.title a.screen_name {margin-left: 5px}
 p.text {margin-top: 0px; font-size: 20px; color: #36383b}
