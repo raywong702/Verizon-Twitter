@@ -6,7 +6,8 @@ class Result(db.Model):
     __tablename__ = 'results'
 
     id = db.Column(db.Integer, primary_key=True)
-    time = db.Column(db.String())
+    #time = db.Column(db.String())
+    time = db.Column(db.DateTime(timezone=True))
     screen_name = db.Column(db.String())
     place = db.Column(db.String())
     text = db.Column(db.String())

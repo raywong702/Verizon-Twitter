@@ -33,7 +33,7 @@ utc = timezone('UTC')
 
 # Ellipses from retweets
 ellipses = u"\u2026"
-ellipses = ellipses.encode('utf-8')
+#ellipses = ellipses.encode('utf-8')
 
 def get_tweets():
     output = []
@@ -70,9 +70,9 @@ def get_tweets():
         place = tweet.place
         if place is not None:
             place = place.full_name
-            print(place)
+#            print(place)
         else:
-            place = " "
+            place = ""
 
         text = tweet.text
         user = tweet.user.screen_name
@@ -86,15 +86,17 @@ def get_tweets():
             #break
 
         # Filling in ellipses which were broken up retweets
-        if ellipses in text.encode('utf-8'):
+        #if ellipses in text.encode('utf-8'):
+        if ellipses in text:
             try:
                 if tweet.retweeted_status:
                     retweet = tweet.retweeted_status.text
-                    left_text = text.encode('utf-8')
-                    #print(left_text)
+#                    left_text = text.encode('utf-8')
+                    left_text = text
+#                    print(left_text)
                     left_text = left_text[:left_text.rindex(ellipses)]
-                    #print(left_text)
-                    #print(retweet)
+#                    print(left_text)
+#                    print(retweet)
                     if " " in left_text:
                         last_word = left_text[left_text.rindex(" "):]
                         missing = retweet[retweet.rindex(last_word) + len(last_word):]
@@ -103,33 +105,31 @@ def get_tweets():
                         missing = retweet[retween.rindex(text) + len(text):]
                         left_text += missing
                     text = left_text
-                    #print(text)
-                    #print("")
+                    print(text)
+                    print("")
             except:
                 pass
 
 
-        print("{} ::: {} ::: {} ::: {}".format(time, user, place, text))
-
+#        print("{} ::: {} ::: {} ::: {}".format(time, user, place, text))
 
         # Build DB
-        #row = models.Result(time, user, place, text)
-        row = models.Result(time, user, place, text, tweet._json)
+        #row = models.Result(time, user, place, text, tweet._json)
+        row = models.Result(est_created_at, user, place, text, tweet._json)
         try:
             db.session.add(row)
             db.session.commit()
         except:
-            pass
+            db.session.rollback()
+        finally:
+            db.session.close()
 
         # Format text for html
-        text = style_text(text, hashtags, users)
+#        text = style_text(text, hashtags, users)
 
-        # Build Output
-#        entry = {"time":time, "user":user, "place":place, "text":text}
-#        output.append(entry)
-        output.append(row)
 
-    return output
+
+
 
 
 # Format text for html
@@ -154,7 +154,7 @@ def replace_user(value, user):
     screen_name = "@" + user
     href = ("<a href='https://twitter.com/" + 
             user + 
-            "'' class='user' target='_blank'>" +
+            "' class='screen_name' target='_blank'>" +
             screen_name + 
             "</a>")
     return value.replace(screen_name, href, 1)
