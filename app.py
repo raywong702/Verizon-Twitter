@@ -24,7 +24,7 @@ def get_last_time():
     return result.time
 
 def is_data_stale():
-    time_back = 15
+    time_back = 1
     eastern = timezone('US/Eastern')
     now = datetime.datetime.now()
     time_check = now - datetime.timedelta(minutes = time_back)
@@ -59,7 +59,6 @@ def convert_results():
 @app.route('/')
 def index():
     if is_data_stale():
-        print("data is stale")
         twitter.get_tweets()
         twitter.get_stream()
         

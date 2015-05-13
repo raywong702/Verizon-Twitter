@@ -22,7 +22,6 @@ auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth, wait_on_rate_limit = True, wait_on_rate_limit_notify = True)
 
 # Setting limits
-time_back = 10
 max_tweets = 100
 
 # Limit to US
@@ -39,7 +38,6 @@ ellipses = u"\u2026"
 #ellipses = ellipses.encode('utf-8')
 
 def get_tweets():
-    output = []
     hashtags = []
     users = []
 
@@ -114,10 +112,10 @@ def get_tweets():
                 pass
 
 
-#        print("{} ::: {} ::: {} ::: {}".format(time, user, place, text))
+        print("{} ::: {} ::: {} ::: {}".format(time, user, place, text))
+        print("")
 
         # Build DB
-        #row = models.Result(time, user, place, text, tweet._json)
         row = models.Result(est_created_at, user, place, text, tweet._json)
         try:
             db.session.add(row)
@@ -127,17 +125,11 @@ def get_tweets():
         finally:
             db.session.close()
 
-        # Format text for html
-#        text = style_text(text, hashtags, users)
-
-
 
 
 # This is the listener, resposible for receiving data
 class StdOutListener(tweepy.StreamListener):
-    print("inside stdoutlistener")
     def on_data(self, data):
-        print("inside on_data")
         tweet = json.loads(data)
         #print(json.dumps(tweet, indent=4, sort_keys=True))
 
@@ -152,11 +144,10 @@ class StdOutListener(tweepy.StreamListener):
         time = est_created_at.strftime("%Y-%m-%d %H:%M:%S EST")
 
         place = tweet['place']
-        if place:
-            try:
-                place = place['full_name']
-            except:
-                pass
+        if place is not None:
+            place = place['full_name']
+        else:
+            place = ""
 
         text = tweet['text']
 #        text = text.encode('utf-8')
@@ -183,15 +174,9 @@ class StdOutListener(tweepy.StreamListener):
                 pass
 
 
-
         print("{} ::: {} ::: {} ::: {}".format(time, user, place, text))
         print("")
         
-#        row = models.Result(time, user, place, text)
-#        db.session.add(row)
-#        db.session.commit()
-
-
 
         # Build DB
         row = models.Result(est_created_at, user, place, text, tweet)
@@ -201,13 +186,6 @@ class StdOutListener(tweepy.StreamListener):
         except:
             db.session.rollback()
 
-
-        # Twitter returns data in JSON format - we need to decode it first
-        #tweet = json.loads(data)
-
-        # Also, we convert UTF-8 to ASCII ignoring all bad characters sent by users
-        #print '@%s: %s' % (tweet['user']['screen_name'], tweet['text'].encode('ascii', 'ignore'))
-        #print ''
         return True
 
     def on_error(self, status):
@@ -220,7 +198,6 @@ class StdOutListener(tweepy.StreamListener):
 
 
 def get_stream():
-    print("inside get_stream")
     l = StdOutListener()
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
@@ -279,4 +256,5 @@ def replace_url_to_link(value):
 
 if __name__ == '__main__':
     get_tweets()
+    get_stream()
 
