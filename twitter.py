@@ -11,9 +11,12 @@ import models
 # Consumer keys and access tokens, used for OAuth
 consumer_key = os.environ['CONSUMER_KEY']
 consumer_secret = os.environ['CONSUMER_SECRET']
+access_token = os.environ['ACCESS_TOKEN']
+access_token_secret = os.environ['ACCESS_TOKEN_SECRET']
  
 # OAuth process, using the keys and tokens
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+auth.set_access_token(access_token, access_token_secret)
 
 # Creation of the actual interface, using authentication
 api = tweepy.API(auth, wait_on_rate_limit = True, wait_on_rate_limit_notify = True)
@@ -128,6 +131,102 @@ def get_tweets():
 #        text = style_text(text, hashtags, users)
 
 
+
+
+# This is the listener, resposible for receiving data
+class StdOutListener(tweepy.StreamListener):
+    print("inside stdoutlistener")
+    def on_data(self, data):
+        print("inside on_data")
+        tweet = json.loads(data)
+        #print(json.dumps(tweet, indent=4, sort_keys=True))
+
+
+        #Convert time from UTC to Eastern
+        created_at = tweet['created_at']
+        created_at = created_at.replace(" +0000", "")
+        created_at = datetime.datetime.strptime(created_at, "%a %b %d %H:%M:%S %Y")
+        utc_created_at = utc.localize(created_at)
+        est_created_at = utc_created_at.astimezone(eastern)
+        est_created_at = est_created_at.replace(tzinfo = None)
+        time = est_created_at.strftime("%Y-%m-%d %H:%M:%S EST")
+
+        place = tweet['place']
+        if place:
+            try:
+                place = place['full_name']
+            except:
+                pass
+
+        text = tweet['text']
+#        text = text.encode('utf-8')
+
+        user = tweet['user'].get('screen_name')
+
+
+        # Filling in ellipses which were broken up retweets
+        if ellipses in text:
+            try:
+                if tweet['retweeted_status']:
+                    #print(text)
+                    #print("***********")
+                    retweet = tweet['retweeted_status']['text']
+                    text = text[:text.rindex(ellipses)]
+                    if " " in text:
+                        last_word = text[text.rindex(" "):]
+                        missing = retweet[retweet.rindex(last_word) + len(last_word):]
+                        text += missing
+                    else:
+                        missing = retweet[retween.rindex(text) + len(text):]
+                        text += missing
+            except:
+                pass
+
+
+
+        print("{} ::: {} ::: {} ::: {}".format(time, user, place, text))
+        print("")
+        
+#        row = models.Result(time, user, place, text)
+#        db.session.add(row)
+#        db.session.commit()
+
+
+
+        # Build DB
+        row = models.Result(est_created_at, user, place, text, tweet)
+        try:
+            db.session.add(row)
+            db.session.commit()
+        except:
+            db.session.rollback()
+
+
+        # Twitter returns data in JSON format - we need to decode it first
+        #tweet = json.loads(data)
+
+        # Also, we convert UTF-8 to ASCII ignoring all bad characters sent by users
+        #print '@%s: %s' % (tweet['user']['screen_name'], tweet['text'].encode('ascii', 'ignore'))
+        #print ''
+        return True
+
+    def on_error(self, status):
+        print(status)
+
+
+
+
+
+
+
+def get_stream():
+    print("inside get_stream")
+    l = StdOutListener()
+    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token, access_token_secret)
+
+    stream = tweepy.Stream(auth, l)
+    stream.filter(track=['verizon', 'vzw'], languages=['en'], async = True)
 
 
 
